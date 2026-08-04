@@ -57,8 +57,6 @@ const daily = computed(() => {
       avg: v.durMin ? v.km / (v.durMin / 60) : 0,
     }));
 });
-
-const latestDaily = computed(() => daily.value.at(-1) ?? null);
 </script>
 
 <template>
@@ -80,30 +78,8 @@ const latestDaily = computed(() => daily.value.at(-1) ?? null);
         <v-row dense class="stats-row" :key="`stats-${currentSession?.id}`">
           <Duration />
           <SessionCounters />
-          <v-col cols="12" class="stat-col">
-            <StatCard
-              icon="mdi-map-marker-distance"
-              :value="latestDaily ? `${latestDaily.km.toFixed(2)} km` : '—'"
-              label="Km / Day"
-              color="#34d399"
-            />
-          </v-col>
-          <v-col cols="12" class="stat-col">
-            <StatCard
-              icon="mdi-timer-sand"
-              :value="latestDaily ? `${latestDaily.dur.toFixed(0)} min` : '—'"
-              label="Minutes / Day"
-              color="#60a5fa"
-            />
-          </v-col>
-          <v-col cols="12" class="stat-col">
-            <StatCard
-              icon="mdi-speedometer-medium"
-              :value="latestDaily ? `${latestDaily.avg.toFixed(1)} km/h` : '—'"
-              label="Avg km/h / Day"
-              color="#a78bfa"
-            />
-          </v-col>
+
+          <div class="section-label">Body</div>
           <v-col cols="12" class="stat-col">
             <StatCard
               icon="mdi-scale-bathroom"
@@ -177,13 +153,25 @@ const latestDaily = computed(() => daily.value.at(-1) ?? null);
   display: flex;
 }
 .stats-row {
-  display: flex;
-  flex-direction: column;
   width: 100%;
-  height: 100%;
 }
 .stats-row :deep(.stat-col) {
-  flex: 1;
+  display: flex;
+}
+.stats-row :deep(.stat-col) > * {
+  width: 100%;
+}
+.stats-row :deep(.section-label) {
+  flex: 0 0 100%;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 10px 4px 0;
+}
+.stats-row :deep(.section-label:first-child) {
+  margin-top: 0;
 }
 
 .charts-col {

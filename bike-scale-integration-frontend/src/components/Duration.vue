@@ -36,10 +36,11 @@ const timespan = computed(() =>
 </script>
 
 <template>
-  <v-col cols="12" class="stat-col">
-    <StatCard icon="mdi-timer-outline" :value="durationText" label="Duration" color="#22d3ee" />
+  <div class="section-label">This Ride</div>
+  <v-col cols="6" class="stat-col">
+    <StatCard icon="mdi-timer-outline" :value="durationText" label="Duration" color="#22d3ee" dense />
   </v-col>
-  <v-col cols="12" class="stat-col">
-    <StatCard icon="mdi-clock-outline" :value="timespan" label="Session" color="#60a5fa" />
+  <v-col cols="6" class="stat-col">
+    <StatCard icon="mdi-clock-outline" :value="timespan" label="Session" color="#60a5fa" dense />
   </v-col>
 </template>

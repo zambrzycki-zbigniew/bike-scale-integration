@@ -4,13 +4,14 @@ defineProps({
   value: { type: String, required: true },
   label: { type: String, default: '' },
   color: { type: String, default: '#22d3ee' },
+  dense: { type: Boolean, default: false },
 });
 </script>
 
 <template>
-  <v-card class="stat-card" :style="{ '--accent': color }" flat>
+  <v-card class="stat-card" :class="{ 'stat-card--dense': dense }" :style="{ '--accent': color }" flat>
     <v-card-text class="stat-card__body">
-      <div class="stat-card__icon"><v-icon size="48">{{ icon }}</v-icon></div>
+      <div class="stat-card__icon"><v-icon :size="dense ? 30 : 48">{{ icon }}</v-icon></div>
       <div class="stat-card__text">
         <div class="stat-card__value">{{ value }}</div>
         <div v-if="label" class="stat-card__label">{{ label }}</div>
@@ -68,5 +69,22 @@ defineProps({
   letter-spacing: .07em;
   color: rgba(255,255,255,.5);
   margin-top: 4px;
+}
+
+.stat-card--dense .stat-card__body {
+  gap: 12px;
+  padding: 12px 16px !important;
+}
+.stat-card--dense .stat-card__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+.stat-card--dense .stat-card__value {
+  font-size: 1.5rem;
+}
+.stat-card--dense .stat-card__label {
+  font-size: .68rem;
+  margin-top: 2px;
 }
 </style>
