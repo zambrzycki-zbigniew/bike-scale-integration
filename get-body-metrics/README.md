@@ -37,9 +37,15 @@ gcloud run deploy get-body-metrics \
   --set-env-vars GOOGLE_CLOUD_PROJECT=bike-scale-integration
 
 # grant the service's own identity access to read/write the secret
+# NOTE: secretVersionManager alone is NOT enough - it covers add/get/list/etc.
+# but NOT reading the payload. secretAccessor is required too, or you'll hit
+# "PERMISSION_DENIED: Permission 'secretmanager.versions.access' denied".
 gcloud secrets add-iam-policy-binding withings-refresh-token \
   --member="serviceAccount:$(gcloud run services describe get-body-metrics --region europe-west3 --format='value(spec.template.spec.serviceAccountName)')" \
   --role="roles/secretmanager.secretVersionManager"
+gcloud secrets add-iam-policy-binding withings-refresh-token \
+  --member="serviceAccount:$(gcloud run services describe get-body-metrics --region europe-west3 --format='value(spec.template.spec.serviceAccountName)')" \
+  --role="roles/secretmanager.secretAccessor"
 ```
 
 > **Note**: unlike Cloud Functions, Cloud Run does NOT auto-inject a
@@ -47,6 +53,11 @@ gcloud secrets add-iam-policy-binding withings-refresh-token \
 > or Secret Manager calls fail with `PERMISSION_DENIED: projects/undefined`.
 > A plain `gcloud run deploy --source` with `--set-env-vars` *replaces* all env
 > vars, so always include the full set (see step 3) on any redeploy.
+
+> **Note**: when testing the sync endpoint manually (e.g. with `curl -X POST`
+> and no body), Google's frontend rejects it with `411 Length Required` unless
+> you add `-H "Content-Length: 0"`. Cloud Scheduler's HTTP jobs handle this
+> correctly on their own, so this only matters for manual testing.
 
 Cloud Run URLs for this project follow the pattern
 `https://<service>-<project-number>.<region>.run.app` — for this project
@@ -95,15 +106,16 @@ https://account.withings.com/oauth2_user/authorize2?response_type=code&client_id
 Log in, approve access. You'll land on a page saying "Withings account
 connected successfully" — that means the refresh token is now in Secret Manager.
 
-### 4. Set up the hourly sync via Cloud Scheduler
+### 4. Set up the daily sync via Cloud Scheduler
 
 Include the `SYNC_SECRET` from step 3 as a query param so random internet
-traffic can't trigger syncs (the service itself is public):
+traffic can't trigger syncs (the service itself is public). Once a day is
+plenty for a scale you step on at most a couple of times daily:
 
 ```bash
 gcloud scheduler jobs create http sync-body-metrics \
   --location europe-west3 \
-  --schedule "0 * * * *" \
+  --schedule "0 6 * * *" \
   --uri "https://get-body-metrics-504294436171.europe-west3.run.app/?key=<same-sync-secret>" \
   --http-method POST
 ```
