@@ -1,10 +1,11 @@
 <script setup>
 import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import { intervalToDuration, format } from 'date-fns';
 import { useSession } from '@/stores/useSession';
 
 
-const { timeline, isLive } = useSession();
+const { timeline, isLive } = storeToRefs(useSession());
 
 /*  małe kafelki, gdy nie jedziesz  */
 const props = defineProps({

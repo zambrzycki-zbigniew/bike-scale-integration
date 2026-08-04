@@ -1,7 +1,8 @@
 <script setup>
 import { computed } from "vue";
+import { storeToRefs } from "pinia";
 import { useSession } from "@/stores/useSession";
-const { speedNow, distNow, isLive } = useSession();
+const { speedNow, distNow, isLive } = storeToRefs(useSession());
 const props = defineProps({
   invertIsLive: { type: Boolean, default: false },
 });

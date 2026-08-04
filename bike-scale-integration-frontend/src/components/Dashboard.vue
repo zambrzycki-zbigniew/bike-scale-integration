@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
+import { storeToRefs } from "pinia";
 import { format } from "date-fns";
 
 import { usePulsesPerKm } from "@/stores/usePulsesPerKm";
@@ -16,8 +17,8 @@ import SessionPicker from "@/components/SessionPicker.vue";
 const invertIsLive = ref(false);
 
 /* ---------- reactive data ---------- */
-const { ppm } = usePulsesPerKm();
-const { sessions, timeline, currentSession, isLive } = useSession();
+const { ppm } = storeToRefs(usePulsesPerKm());
+const { sessions, timeline, currentSession, isLive } = storeToRefs(useSession());
 
 /* ---------- wykresy ---------- */
 const distLine = computed(() => {

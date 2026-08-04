@@ -1,11 +1,14 @@
 <script setup>
 import { computed } from "vue";
+import { storeToRefs } from "pinia";
 import { format, intervalToDuration } from "date-fns";
 import { useSession } from "@/stores/useSession";
 import { usePulsesPerKm } from "@/stores/usePulsesPerKm";
 
-const { sessions, selectSession, isLive, currentSession } = useSession();
-const { ppm } = usePulsesPerKm();
+const sessionStore = useSession();
+const { sessions, isLive, currentSession } = storeToRefs(sessionStore);
+const { selectSession } = sessionStore;
+const { ppm } = storeToRefs(usePulsesPerKm());
 
 /* kolumny tabeli */
 const headers = [

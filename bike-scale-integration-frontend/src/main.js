@@ -1,7 +1,8 @@
 // src/main.js
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import App from './App.vue';
-import { db, auth } from './firebase';
+import { auth } from './firebase';
 import { signInAnonymously } from 'firebase/auth';
 
 import 'vuetify/styles';
@@ -19,8 +20,7 @@ const vuetify = createVuetify({
 
 signInAnonymously(auth).then(() => {
   const app = createApp(App);
-  app.provide('db', db);
-  app.provide('auth', auth);
+  app.use(createPinia());
   app.use(vuetify);
   app.mount('#app');
 });

@@ -1,28 +1,24 @@
-import { ref, computed, inject } from 'vue';
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
 import {
   collection, query, orderBy, where, onSnapshot, doc
 } from 'firebase/firestore';
 import { format } from 'date-fns';
+import { db } from '@/firebase';
 import { useMetrics } from '@/composables/useMetrics';
 import { usePulsesPerKm } from '@/stores/usePulsesPerKm';
 
 const FALLBACK_PPM = 464;   // used only if Firestore config hasn't loaded yet
 const MIN_SAMPLES  = 10;
 
-/* ── singleton reactive state ── */
-const sessions    = ref([]);      // zamknięte + ewent. current
-const timeline    = ref([]);      // [{ t, p }]
-const currentLive = ref(null);    // 'current' lub null
-const selectedId  = ref(null);    // id z picker-a
-let   wired       = false;
-let   api;                        
-
-export function useSession() {
-  if (wired) return api;          // zwracamy już istniejący obiekt
-
-  /* ────────── konfiguracja tylko raz ────────── */
-  const db = inject('db');
+export const useSession = defineStore('session', () => {
+  /* ────────── konfiguracja tylko raz (Pinia gwarantuje singleton) ────────── */
   const { ppm } = usePulsesPerKm();
+
+  const sessions    = ref([]);      // zamknięte + ewent. current
+  const timeline    = ref([]);      // [{ t, p }]
+  const currentLive = ref(null);    // 'current' lub null
+  const selectedId  = ref(null);    // id z picker-a
 
   /* 1) zamknięte sesje */
   onSnapshot(
@@ -100,18 +96,18 @@ export function useSession() {
     return null;
   });
 
-  /* 7) public API */
-  api = {
+  const isLive = computed(() => !!currentLive.value);
+
+  function selectSession(id) { selectedId.value = id; }
+
+  return {
     sessions,
     timeline,
     currentSession,
     speedNow,
     distNow,
-    isLive:  computed(() => !!currentLive.value),
-    selectSession(id) { selectedId.value = id; },
+    isLive,
+    selectSession,
     selectedId,
   };
-
-  wired = true;
-  return api;
-}
+});

@@ -1,7 +1,8 @@
-import { inject, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import {
   collection, doc, onSnapshot, query, orderBy,
 } from 'firebase/firestore';
+import { db } from '@/firebase';
 
 /**
  *  useMetrics(sessionIdRef)
@@ -10,7 +11,6 @@ import {
  *  • zwraca funkcję listen(onPulses) – callback dostaje {ts,p} lub '__RESET__'
  */
 export function useMetrics(sessionIdRef) {
-  const db     = inject('db');
   const stop   = ref(() => {});
 
   function attach(id, onPulses) {

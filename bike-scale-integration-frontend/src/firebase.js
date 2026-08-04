@@ -3,12 +3,12 @@ import { getFirestore }  from 'firebase/firestore';
 import { getAuth }       from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA_c91H9hA2dROsxoRtJ4LWidyXHQ8Fn4U",
-  authDomain: "bike-scale-integration.firebaseapp.com",
-  projectId: "bike-scale-integration",
-  storageBucket: "bike-scale-integration.firebasestorage.app",
-  messagingSenderId: "504294436171",
-  appId: "1:504294436171:web:6ab7d0bc89ee0868bcccce"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 export const app  = initializeApp(firebaseConfig);
