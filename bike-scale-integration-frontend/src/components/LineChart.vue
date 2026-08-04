@@ -14,6 +14,7 @@ const props = defineProps({
   title:      { type: String, default: '' },
   accent:     { type: String, default: '#22d3ee' },
   fillHeight: { type: Boolean, default: false },
+  timeUnit:   { type: String, default: 'minute' },
   datasets:   { type: Array,  default: () => [] }
 });
 
@@ -28,17 +29,17 @@ const ds = computed(() => props.datasets.map(d => ({
   ...d,
 })));
 
-const options = {
+const options = computed(() => ({
   parsing: false,
   responsive: true,
   maintainAspectRatio: false,
   plugins: { legend: { display: false } },
   scales: {
-    x: { type: 'time', time: { unit: 'minute' },
+    x: { type: 'time', time: { unit: props.timeUnit },
          ticks: { color: 'rgba(255,255,255,.85)', font: { size: 13 } }, grid: { color: 'rgba(255,255,255,.14)' } },
     y: { ticks: { color: 'rgba(255,255,255,.85)', font: { size: 13 } }, grid: { color: 'rgba(255,255,255,.14)' } }
   },
-};
+}));
 </script>
 
 <template>

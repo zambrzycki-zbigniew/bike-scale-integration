@@ -1,0 +1,14 @@
+{
+  "name": "get-body-metrics",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^4.0.0",
+    "@google-cloud/firestore": "^7.11.1",
+    "@google-cloud/secret-manager": "^5.6.0"
+  },
+  "scripts": {
+    "start": "functions-framework --target=main"
+  }
+}

@@ -5,6 +5,7 @@ import { format } from "date-fns";
 
 import { usePulsesPerKm } from "@/stores/usePulsesPerKm";
 import { useSession } from "@/stores/useSession";
+import { useBodyMetrics } from "@/stores/useBodyMetrics";
 import { hybridSeries } from "@/utils/downsample";
 
 import LineChart from "@/components/LineChart.vue";
@@ -13,12 +14,14 @@ import LineSkeleton from "@/components/LineSkeleton.vue";
 import Duration from "@/components/Duration.vue";
 import SessionCounters from "@/components/SessionCounters.vue";
 import SessionPicker from "@/components/SessionPicker.vue";
+import StatCard from "@/components/StatCard.vue";
 
 const invertIsLive = ref(false);
 
 /* ---------- reactive data ---------- */
 const { ppm } = storeToRefs(usePulsesPerKm());
 const { sessions, timeline, currentSession, isLive } = storeToRefs(useSession());
+const { latest: latestBodyMetric, weightSeries } = storeToRefs(useBodyMetrics());
 
 const isLiveEffective = computed(() => (!invertIsLive.value ? isLive.value : !isLive.value));
 
@@ -128,6 +131,27 @@ const daily = computed(() => {
           accent="#a78bfa"
           :labels="daily.map((d) => d.day)"
           :datasets="[{ label: 'km/h', data: daily.map((d) => d.avg) }]"
+        />
+      </v-col>
+    </v-row>
+
+    <!-- Withings body composition -->
+    <v-row v-if="latestBodyMetric" dense>
+      <v-col cols="12" md="3">
+        <StatCard
+          icon="mdi-scale-bathroom"
+          :value="`${latestBodyMetric.weightKg.toFixed(1)} kg`"
+          label="Weight"
+          color="#fbbf24"
+        />
+      </v-col>
+      <v-col cols="12" md="9">
+        <LineChart
+          chart-id="weight-trend"
+          title="Weight trend"
+          accent="#fbbf24"
+          time-unit="day"
+          :datasets="[{ label: 'kg', data: weightSeries }]"
         />
       </v-col>
     </v-row>
