@@ -1,7 +1,7 @@
 <template>
   <v-skeleton-loader
     type="image"
-    height="300"
-    class="mx-3"
+    height="240"
+    rounded="lg"
   />
 </template>

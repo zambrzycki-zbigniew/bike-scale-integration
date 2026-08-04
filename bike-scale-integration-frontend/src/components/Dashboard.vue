@@ -70,20 +70,26 @@ const daily = computed(() => {
 </script>
 
 <template>
-  <v-btn @click="invertIsLive = !invertIsLive"></v-btn>
-  <v-container fluid>
+  <v-container fluid class="dashboard">
+    <header class="dashboard__header">
+      <h1 class="dashboard__title"><v-icon color="primary">mdi-bike</v-icon> Bike Dashboard</h1>
+      <div class="dashboard__header-right">
+        <v-chip v-if="isLive" color="green" size="small" class="live-chip" variant="flat">
+          <v-icon start size="10">mdi-circle</v-icon> LIVE
+        </v-chip>
+        <v-btn icon="mdi-swap-horizontal" size="small" variant="text" density="comfortable"
+               @click="invertIsLive = !invertIsLive" title="Toggle preview mode" />
+      </div>
+    </header>
+
     <!-- kafelki + picker -->
     <transition name="fade" mode="out-in">
-      <v-row :key="!invertIsLive ? isLive : !isLive">
+      <v-row :key="!invertIsLive ? isLive : !isLive" dense>
         <v-col :cols="(!invertIsLive ? isLive : !isLive) ? 12 : 6">
-          <Duration
-            :key="`dur-${currentSession?.id}`"
-            :invertIsLive="invertIsLive"
-          />
-          <SessionCounters
-            :key="`cnt-${currentSession?.id}`"
-            :invertIsLive="invertIsLive"
-          />
+          <v-row dense :key="`stats-${currentSession?.id}`">
+            <Duration :invertIsLive="invertIsLive" />
+            <SessionCounters :invertIsLive="invertIsLive" />
+          </v-row>
         </v-col>
         <v-col v-if="!(!invertIsLive ? isLive : !isLive)" cols="6">
           <SessionPicker />
@@ -92,12 +98,14 @@ const daily = computed(() => {
     </transition>
 
     <!-- wykresy -->
-    <v-row>
+    <v-row dense>
       <v-col cols="12" md="6">
         <transition name="fade-fast" mode="out-in">
           <LineChart
             v-if="distLine.length"
             :key="`dist-${currentSession?.id}`"
+            title="Distance"
+            accent="#34d399"
             :datasets="[{ label: 'km', data: distLine }]" />
           <LineSkeleton v-else
         /></transition>
@@ -109,6 +117,8 @@ const daily = computed(() => {
             v-if="speedLine.length"
             :key="`spd-${currentSession?.id}`"
             chart-id="speed"
+            title="Speed"
+            accent="#a78bfa"
             :datasets="[{ label: 'km/h', data: speedLine }]" />
           <LineSkeleton v-else
         /></transition>
@@ -116,10 +126,12 @@ const daily = computed(() => {
     </v-row>
 
     <!-- bar-charty -->
-    <v-row v-if="daily.length">
+    <v-row v-if="daily.length" dense>
       <v-col cols="12" md="4">
         <BarChart
           chart-id="km-day"
+          title="km / day"
+          accent="#34d399"
           :labels="daily.map((d) => d.day)"
           :datasets="[{ label: 'km', data: daily.map((d) => d.km) }]"
         />
@@ -127,6 +139,8 @@ const daily = computed(() => {
       <v-col cols="12" md="4">
         <BarChart
           chart-id="dur-day"
+          title="Minutes / day"
+          accent="#60a5fa"
           :labels="daily.map((d) => d.day)"
           :datasets="[{ label: 'min', data: daily.map((d) => d.dur) }]"
         />
@@ -134,6 +148,8 @@ const daily = computed(() => {
       <v-col cols="12" md="4">
         <BarChart
           chart-id="avg-day"
+          title="Avg km/h / day"
+          accent="#a78bfa"
           :labels="daily.map((d) => d.day)"
           :datasets="[{ label: 'km/h', data: daily.map((d) => d.avg) }]"
         />

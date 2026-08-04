@@ -48,7 +48,8 @@ function onRowClick(_, row) {
 </script>
 
 <template>
-  <v-card v-if="!isLive" color="grey-darken-3" elevation="2">
+  <v-card v-if="!isLive" class="session-picker" flat>
+    <div class="session-picker__title">Rides</div>
     <v-data-table
       :headers="headers"
       :items="rows"
@@ -64,3 +65,19 @@ function onRowClick(_, row) {
     />
   </v-card>
 </template>
+
+<style scoped>
+.session-picker {
+  height: 100%;
+  padding: 14px 16px 6px;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.session-picker__title {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.6);
+  margin-bottom: 6px;
+}
+</style>

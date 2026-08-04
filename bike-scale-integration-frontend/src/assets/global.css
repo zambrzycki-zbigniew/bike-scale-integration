@@ -1,4 +1,53 @@
 /* src/assets/global.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+html, body, #app {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.dashboard {
+  padding: 16px 20px !important;
+}
+
+.dashboard__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.dashboard__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  margin: 0;
+}
+
+.dashboard__header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.live-chip {
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.live-chip .mdi-circle {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .3; }
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: all .3s ease;

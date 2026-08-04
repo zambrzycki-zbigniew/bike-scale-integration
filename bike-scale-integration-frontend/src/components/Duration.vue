@@ -3,15 +3,15 @@ import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { intervalToDuration, format } from 'date-fns';
 import { useSession } from '@/stores/useSession';
-
+import StatCard from '@/components/StatCard.vue';
 
 const { timeline, isLive } = storeToRefs(useSession());
 
-/*  małe kafelki, gdy nie jedziesz  */
+/*  kompaktowe kafelki, gdy nie jedziesz  */
 const props = defineProps({
   invertIsLive:  { type: Boolean, default: false }
 });
-const small = computed(() => !(!props.invertIsLive ? isLive.value : !isLive.value));
+const compact = computed(() => !(!props.invertIsLive ? isLive.value : !isLive.value));
 
 /*  start / end epoki  */
 const start = computed(() => timeline.value[0]?.t ?? null);
@@ -28,6 +28,10 @@ const duration = computed(() => {
   const d = intervalToDuration({ start:0, end: durSec.value * 1000 });
   return { h: d.hours||0, m: d.minutes||0, s: d.seconds||0 };
 });
+const durationText = computed(() => {
+  const { h, m, s } = duration.value;
+  return `${h ? h + 'h ' : ''}${m ? m + 'm ' : ''}${s}s`;
+});
 
 /*  „HH:mm:ss – HH:mm:ss”  */
 const timespan = computed(() =>
@@ -38,27 +42,10 @@ const timespan = computed(() =>
 </script>
 
 <template>
-  <v-row :class="small ? 'my-0':'my-2'" justify="center">
-    <v-col :cols="small ? 12 : 6">
-      <v-card elevation="2" :color="small ? 'light-blue-darken-3' : 'light-blue'">
-        <v-card-text :class="small ? `text-center d-flex justify-center align-center` : `text-center`">
-          <v-icon :size="small ? 43 : 70">mdi-timer</v-icon><br v-if="!small">
-          <span :class="small ? 'text-h5' : 'text-h2'">
-            {{ duration.h ? `${duration.h}h ` : '' }}
-            {{ duration.m ? `${duration.m}m ` : '' }}
-            {{ duration.s }}s
-          </span>
-        </v-card-text>
-      </v-card>
-    </v-col>
-
-    <v-col :cols="small ? 12 : 6">
-      <v-card elevation="2" :color="small ? 'cyan-darken-4' : 'cyan-darken-1'">
-        <v-card-text :class="small ? `text-center d-flex justify-center align-center` : `text-center`">
-          <v-icon :size="small ? 43 : 70">mdi-clock</v-icon><br v-if="!small">
-          <span :class="small ? 'text-h5' : 'text-h2'">{{ timespan }}</span>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
+  <v-col cols="6">
+    <StatCard icon="mdi-timer-outline" :value="durationText" label="Duration" color="#22d3ee" :compact="compact" />
+  </v-col>
+  <v-col cols="6">
+    <StatCard icon="mdi-clock-outline" :value="timespan" label="Session" color="#60a5fa" :compact="compact" />
+  </v-col>
 </template>
