@@ -33,13 +33,20 @@ echo -n "placeholder" | gcloud secrets create withings-refresh-token --data-file
 gcloud run deploy get-body-metrics \
   --source ./get-body-metrics \
   --region europe-west3 \
-  --allow-unauthenticated
+  --allow-unauthenticated \
+  --set-env-vars GOOGLE_CLOUD_PROJECT=bike-scale-integration
 
 # grant the service's own identity access to read/write the secret
 gcloud secrets add-iam-policy-binding withings-refresh-token \
   --member="serviceAccount:$(gcloud run services describe get-body-metrics --region europe-west3 --format='value(spec.template.spec.serviceAccountName)')" \
   --role="roles/secretmanager.secretVersionManager"
 ```
+
+> **Note**: unlike Cloud Functions, Cloud Run does NOT auto-inject a
+> `GOOGLE_CLOUD_PROJECT` env var — it must always be set explicitly (as above),
+> or Secret Manager calls fail with `PERMISSION_DENIED: projects/undefined`.
+> A plain `gcloud run deploy --source` with `--set-env-vars` *replaces* all env
+> vars, so always include the full set (see step 3) on any redeploy.
 
 Cloud Run URLs for this project follow the pattern
 `https://<service>-<project-number>.<region>.run.app` — for this project
@@ -72,7 +79,7 @@ Save the **Client ID** and **Client Secret** it gives you.
 
 ```bash
 gcloud run services update get-body-metrics --region europe-west3 \
-  --set-env-vars \
+  --update-env-vars \
 WITHINGS_CLIENT_ID=<your_client_id>,\
 WITHINGS_CLIENT_SECRET=<your_client_secret>,\
 WITHINGS_REDIRECT_URI=https://get-body-metrics-504294436171.europe-west3.run.app/oauth/callback,\
