@@ -13,7 +13,6 @@ import BarChart from "@/components/BarChart.vue";
 import LineSkeleton from "@/components/LineSkeleton.vue";
 import Duration from "@/components/Duration.vue";
 import SessionCounters from "@/components/SessionCounters.vue";
-import SessionPicker from "@/components/SessionPicker.vue";
 import StatCard from "@/components/StatCard.vue";
 
 const invertIsLive = ref(false);
@@ -22,8 +21,6 @@ const invertIsLive = ref(false);
 const { ppm } = storeToRefs(usePulsesPerKm());
 const { sessions, timeline, currentSession, isLive } = storeToRefs(useSession());
 const { latest: latestBodyMetric, weightSeries } = storeToRefs(useBodyMetrics());
-
-const isLiveEffective = computed(() => (!invertIsLive.value ? isLive.value : !isLive.value));
 
 /* ---------- wykresy ---------- */
 const speedLine = computed(() => {
@@ -60,6 +57,8 @@ const daily = computed(() => {
       avg: v.durMin ? v.km / (v.durMin / 60) : 0,
     }));
 });
+
+const latestDaily = computed(() => daily.value.at(-1) ?? null);
 </script>
 
 <template>
@@ -75,20 +74,49 @@ const daily = computed(() => {
       </div>
     </header>
 
-    <!-- kafelki + wykres prędkości / tabela -->
+    <!-- kafelki (wszystkie najnowsze staty) + wykresy -->
     <v-row dense>
       <v-col cols="12" md="6" class="stats-col">
         <v-row dense class="stats-row" :key="`stats-${currentSession?.id}`">
           <Duration />
           <SessionCounters />
+          <v-col cols="12" class="stat-col">
+            <StatCard
+              icon="mdi-map-marker-distance"
+              :value="latestDaily ? `${latestDaily.km.toFixed(2)} km` : '—'"
+              label="Km / Day"
+              color="#34d399"
+            />
+          </v-col>
+          <v-col cols="12" class="stat-col">
+            <StatCard
+              icon="mdi-timer-sand"
+              :value="latestDaily ? `${latestDaily.dur.toFixed(0)} min` : '—'"
+              label="Minutes / Day"
+              color="#60a5fa"
+            />
+          </v-col>
+          <v-col cols="12" class="stat-col">
+            <StatCard
+              icon="mdi-speedometer-medium"
+              :value="latestDaily ? `${latestDaily.avg.toFixed(1)} km/h` : '—'"
+              label="Avg km/h / Day"
+              color="#a78bfa"
+            />
+          </v-col>
+          <v-col cols="12" class="stat-col">
+            <StatCard
+              icon="mdi-scale-bathroom"
+              :value="latestBodyMetric ? `${latestBodyMetric.weightKg.toFixed(1)} kg` : '—'"
+              label="Weight"
+              color="#fbbf24"
+            />
+          </v-col>
         </v-row>
       </v-col>
 
-      <v-col cols="12" md="6" class="speed-col">
-        <div class="speed-col__inner" :class="{ 'speed-col__inner--live': isLiveEffective }">
-          <transition name="fade">
-            <SessionPicker v-if="!isLiveEffective" />
-          </transition>
+      <v-col cols="12" md="6" class="charts-col">
+        <div class="charts-col__inner">
           <transition name="fade-fast" mode="out-in">
             <LineChart
               v-if="speedLine.length"
@@ -96,63 +124,49 @@ const daily = computed(() => {
               chart-id="speed"
               title="Speed"
               accent="#a78bfa"
-              :fill-height="isLiveEffective"
               :datasets="[{ label: 'km/h', data: speedLine }]" />
             <LineSkeleton v-else
           /></transition>
+
+          <LineChart
+            v-if="weightSeries.length"
+            chart-id="weight-trend"
+            title="Weight trend"
+            accent="#fbbf24"
+            time-unit="day"
+            :datasets="[{ label: 'kg', data: weightSeries }]"
+          />
+
+          <v-row v-if="daily.length" dense>
+            <v-col cols="12" md="4">
+              <BarChart
+                chart-id="km-day"
+                title="km / day"
+                accent="#34d399"
+                :labels="daily.map((d) => d.day)"
+                :datasets="[{ label: 'km', data: daily.map((d) => d.km) }]"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <BarChart
+                chart-id="dur-day"
+                title="Minutes / day"
+                accent="#60a5fa"
+                :labels="daily.map((d) => d.day)"
+                :datasets="[{ label: 'min', data: daily.map((d) => d.dur) }]"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <BarChart
+                chart-id="avg-day"
+                title="Avg km/h / day"
+                accent="#a78bfa"
+                :labels="daily.map((d) => d.day)"
+                :datasets="[{ label: 'km/h', data: daily.map((d) => d.avg) }]"
+              />
+            </v-col>
+          </v-row>
         </div>
-      </v-col>
-    </v-row>
-
-    <!-- bar-charty -->
-    <v-row v-if="daily.length" dense>
-      <v-col cols="12" md="4">
-        <BarChart
-          chart-id="km-day"
-          title="km / day"
-          accent="#34d399"
-          :labels="daily.map((d) => d.day)"
-          :datasets="[{ label: 'km', data: daily.map((d) => d.km) }]"
-        />
-      </v-col>
-      <v-col cols="12" md="4">
-        <BarChart
-          chart-id="dur-day"
-          title="Minutes / day"
-          accent="#60a5fa"
-          :labels="daily.map((d) => d.day)"
-          :datasets="[{ label: 'min', data: daily.map((d) => d.dur) }]"
-        />
-      </v-col>
-      <v-col cols="12" md="4">
-        <BarChart
-          chart-id="avg-day"
-          title="Avg km/h / day"
-          accent="#a78bfa"
-          :labels="daily.map((d) => d.day)"
-          :datasets="[{ label: 'km/h', data: daily.map((d) => d.avg) }]"
-        />
-      </v-col>
-    </v-row>
-
-    <!-- Withings body composition -->
-    <v-row v-if="latestBodyMetric" dense>
-      <v-col cols="12" md="3">
-        <StatCard
-          icon="mdi-scale-bathroom"
-          :value="`${latestBodyMetric.weightKg.toFixed(1)} kg`"
-          label="Weight"
-          color="#fbbf24"
-        />
-      </v-col>
-      <v-col cols="12" md="9">
-        <LineChart
-          chart-id="weight-trend"
-          title="Weight trend"
-          accent="#fbbf24"
-          time-unit="day"
-          :datasets="[{ label: 'kg', data: weightSeries }]"
-        />
       </v-col>
     </v-row>
   </v-container>
@@ -172,20 +186,13 @@ const daily = computed(() => {
   flex: 1;
 }
 
-.speed-col {
+.charts-col {
   display: flex;
 }
-.speed-col__inner {
+.charts-col__inner {
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
-}
-.speed-col__inner--live {
-  height: 100%;
-}
-.speed-col__inner--live :deep(.chart-card--fill) {
-  flex: 1;
-  min-height: 0;
 }
 </style>
