@@ -14,10 +14,10 @@ const compact = computed(
 </script>
 
 <template>
-  <v-col cols="6">
+  <v-col cols="12">
     <StatCard icon="mdi-counter" :value="`${distNow.toFixed(2)} km`" label="Distance" color="#34d399" :compact="compact" />
   </v-col>
-  <v-col cols="6">
+  <v-col cols="12">
     <StatCard icon="mdi-speedometer" :value="`${speedNow.toFixed(1)} km/h`" label="Speed" color="#a78bfa" :compact="compact" />
   </v-col>
 </template>

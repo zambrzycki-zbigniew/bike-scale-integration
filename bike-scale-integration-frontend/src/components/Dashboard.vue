@@ -20,19 +20,9 @@ const invertIsLive = ref(false);
 const { ppm } = storeToRefs(usePulsesPerKm());
 const { sessions, timeline, currentSession, isLive } = storeToRefs(useSession());
 
-/* ---------- wykresy ---------- */
-const distLine = computed(() => {
-  if (!timeline.value.length || !currentSession.value) return [];
-  return hybridSeries(
-    currentSession.value.start,
-    timeline.value,
-    ppm.value,
-    60,
-    1,
-    120
-  ).distPoints;
-});
+const isLiveEffective = computed(() => (!invertIsLive.value ? isLive.value : !isLive.value));
 
+/* ---------- wykresy ---------- */
 const speedLine = computed(() => {
   if (!timeline.value.length || !currentSession.value) return [];
   return hybridSeries(
@@ -82,46 +72,32 @@ const daily = computed(() => {
       </div>
     </header>
 
-    <!-- kafelki + picker -->
-    <transition name="fade" mode="out-in">
-      <v-row :key="!invertIsLive ? isLive : !isLive" dense>
-        <v-col :cols="(!invertIsLive ? isLive : !isLive) ? 12 : 6">
-          <v-row dense :key="`stats-${currentSession?.id}`">
-            <Duration :invertIsLive="invertIsLive" />
-            <SessionCounters :invertIsLive="invertIsLive" />
-          </v-row>
-        </v-col>
-        <v-col v-if="!(!invertIsLive ? isLive : !isLive)" cols="6">
-          <SessionPicker />
-        </v-col>
-      </v-row>
-    </transition>
-
-    <!-- wykresy -->
+    <!-- kafelki + wykres prędkości / tabela -->
     <v-row dense>
       <v-col cols="12" md="6">
-        <transition name="fade-fast" mode="out-in">
-          <LineChart
-            v-if="distLine.length"
-            :key="`dist-${currentSession?.id}`"
-            title="Distance"
-            accent="#34d399"
-            :datasets="[{ label: 'km', data: distLine }]" />
-          <LineSkeleton v-else
-        /></transition>
+        <v-row dense :key="`stats-${currentSession?.id}`">
+          <Duration :invertIsLive="invertIsLive" />
+          <SessionCounters :invertIsLive="invertIsLive" />
+        </v-row>
       </v-col>
 
-      <v-col cols="12" md="6">
-        <transition name="fade-fast" mode="out-in">
-          <LineChart
-            v-if="speedLine.length"
-            :key="`spd-${currentSession?.id}`"
-            chart-id="speed"
-            title="Speed"
-            accent="#a78bfa"
-            :datasets="[{ label: 'km/h', data: speedLine }]" />
-          <LineSkeleton v-else
-        /></transition>
+      <v-col cols="12" md="6" class="speed-col">
+        <div class="speed-col__inner" :class="{ 'speed-col__inner--live': isLiveEffective }">
+          <transition name="fade-fast" mode="out-in">
+            <LineChart
+              v-if="speedLine.length"
+              :key="`spd-${currentSession?.id}`"
+              chart-id="speed"
+              title="Speed"
+              accent="#a78bfa"
+              :fill-height="isLiveEffective"
+              :datasets="[{ label: 'km/h', data: speedLine }]" />
+            <LineSkeleton v-else
+          /></transition>
+          <transition name="fade">
+            <SessionPicker v-if="!isLiveEffective" />
+          </transition>
+        </div>
       </v-col>
     </v-row>
 
@@ -157,3 +133,22 @@ const daily = computed(() => {
     </v-row>
   </v-container>
 </template>
+
+<style scoped>
+.speed-col {
+  display: flex;
+}
+.speed-col__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+.speed-col__inner--live {
+  height: 100%;
+}
+.speed-col__inner--live :deep(.chart-card--fill) {
+  flex: 1;
+  min-height: 0;
+}
+</style>

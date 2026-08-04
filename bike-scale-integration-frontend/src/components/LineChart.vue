@@ -10,18 +10,19 @@ ChartJS.register(TimeScale, LinearScale, PointElement,
                  LineElement, Filler, Tooltip, Legend);
 
 const props = defineProps({
-  chartId:  { type: String, default: 'line' },
-  title:    { type: String, default: '' },
-  accent:   { type: String, default: '#22d3ee' },
-  datasets: { type: Array,  default: () => [] }
+  chartId:    { type: String, default: 'line' },
+  title:      { type: String, default: '' },
+  accent:     { type: String, default: '#22d3ee' },
+  fillHeight: { type: Boolean, default: false },
+  datasets:   { type: Array,  default: () => [] }
 });
 
 const ds = computed(() => props.datasets.map(d => ({
   borderColor: props.accent,
-  backgroundColor: `${props.accent}33`,
+  backgroundColor: `${props.accent}40`,
   pointRadius: 0,
   pointHoverRadius: 4,
-  borderWidth: 3,
+  borderWidth: 3.5,
   tension: 0.35,
   fill: true,
   ...d,
@@ -34,16 +35,16 @@ const options = {
   plugins: { legend: { display: false } },
   scales: {
     x: { type: 'time', time: { unit: 'minute' },
-         ticks: { color: 'rgba(255,255,255,.75)' }, grid: { color: 'rgba(255,255,255,.1)' } },
-    y: { ticks: { color: 'rgba(255,255,255,.75)' }, grid: { color: 'rgba(255,255,255,.1)' } }
+         ticks: { color: 'rgba(255,255,255,.85)', font: { size: 13 } }, grid: { color: 'rgba(255,255,255,.14)' } },
+    y: { ticks: { color: 'rgba(255,255,255,.85)', font: { size: 13 } }, grid: { color: 'rgba(255,255,255,.14)' } }
   },
 };
 </script>
 
 <template>
-  <v-card class="chart-card">
+  <v-card class="chart-card" :class="{ 'chart-card--fill': fillHeight }">
     <div v-if="title" class="chart-card__title">{{ title }}</div>
-    <div class="chart-canvas-wrap">
+    <div class="chart-canvas-wrap" :class="{ 'chart-canvas-wrap--fill': fillHeight }">
       <Line :chart-id="chartId"
             :data="{ datasets: ds }"
             :options="options" />
@@ -54,19 +55,29 @@ const options = {
 <style scoped>
 .chart-card {
   padding: 14px 16px 10px;
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.18);
 }
 .chart-card__title {
-  font-size: .8rem;
+  font-size: .85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: rgba(255,255,255,.65);
+  color: rgba(255,255,255,.75);
   margin-bottom: 6px;
 }
 .chart-canvas-wrap {
   position: relative;
   height: 240px;
+}
+.chart-card--fill {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.chart-canvas-wrap--fill {
+  flex: 1;
+  height: auto;
+  min-height: 0;
 }
 </style>

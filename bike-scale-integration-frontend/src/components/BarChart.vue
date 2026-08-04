@@ -32,8 +32,8 @@ const options = {
   maintainAspectRatio: false,
   plugins: { legend: { display: false } },
   scales: {
-    x: { ticks:{ color:'rgba(255,255,255,.75)' }, grid:{ display:false } },
-    y: { ticks:{ color:'rgba(255,255,255,.75)' }, grid:{ color:'rgba(255,255,255,.1)' } }
+    x: { ticks:{ color:'rgba(255,255,255,.85)', font: { size: 13 } }, grid:{ display:false } },
+    y: { ticks:{ color:'rgba(255,255,255,.85)', font: { size: 13 } }, grid:{ color:'rgba(255,255,255,.14)' } }
   }
 };
 </script>
@@ -52,15 +52,15 @@ const options = {
 <style scoped>
 .chart-card {
   padding: 14px 16px 10px;
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.18);
 }
 .chart-card__title {
-  font-size: .8rem;
+  font-size: .85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: rgba(255,255,255,.65);
+  color: rgba(255,255,255,.75);
   margin-bottom: 6px;
 }
 .chart-canvas-wrap {

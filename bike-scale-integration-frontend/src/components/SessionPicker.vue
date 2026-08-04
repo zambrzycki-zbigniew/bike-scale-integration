@@ -70,14 +70,15 @@ function onRowClick(_, row) {
 .session-picker {
   height: 100%;
   padding: 14px 16px 6px;
-  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.18);
 }
 .session-picker__title {
-  font-size: .8rem;
+  font-size: .85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: rgba(255,255,255,.6);
+  color: rgba(255,255,255,.75);
   margin-bottom: 6px;
 }
 </style>
