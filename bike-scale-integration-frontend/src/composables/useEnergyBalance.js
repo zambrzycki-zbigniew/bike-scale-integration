@@ -1,17 +1,9 @@
 import { computed } from 'vue';
+import { metForSpeed } from '@/utils/met';
 
 const FAT_KCAL_PER_KG = 7700; // energy density of adipose tissue
 const MIN_POINTS = 3;
 const MIN_SPAN_DAYS = 5;
-
-// approximate MET for cycling by average speed (compendium of physical activities)
-function metForSpeed(kmh) {
-  if (kmh < 16) return 4.0;
-  if (kmh < 19) return 6.8;
-  if (kmh < 22.4) return 8.0;
-  if (kmh < 25.6) return 10.0;
-  return 12.0;
-}
 
 // least-squares slope of y vs. time, expressed as "units of y per day"
 function slopePerDay(points) {
@@ -38,7 +30,7 @@ function slopePerDay(points) {
  *  Solving for calories-in lets weight/body-composition trend + tracked rides
  *  reveal what you must roughly be eating, without ever logging food.
  */
-export function useEnergyBalance(bodyEntries, sessions, ppm, windowDays = 14) {
+export function useEnergyBalance(bodyEntries, sessions, ppm, windowDays = 14, goalWeightKg = null) {
   const cutoff = computed(() => Math.floor(Date.now() / 1000) - windowDays * 86400);
 
   const windowEntries = computed(() =>
@@ -67,6 +59,25 @@ export function useEnergyBalance(bodyEntries, sessions, ppm, windowDays = 14) {
       .map((e) => ({ t: e.date, y: e.weightKg * (e.fatRatioPct / 100) }));
     const slope = slopePerDay(points);
     return slope == null ? null : slope * 7;
+  });
+
+  const muscleMassTrendPerWeek = computed(() => {
+    const points = windowEntries.value
+      .filter((e) => e.muscleMassKg != null)
+      .map((e) => ({ t: e.date, y: e.muscleMassKg }));
+    const slope = slopePerDay(points);
+    return slope == null ? null : slope * 7;
+  });
+
+  // days until goalWeightKg is reached at the current weight-trend rate (null if trend moves away from goal)
+  const goalEtaDays = computed(() => {
+    if (!goalWeightKg || !hasEnoughData.value || weightTrendPerWeek.value == null) return null;
+    const current = windowEntries.value.at(-1).weightKg;
+    const diff = current - goalWeightKg;
+    if (Math.abs(diff) < 0.05) return 0;
+    const dailyRate = weightTrendPerWeek.value / 7;
+    if ((diff > 0 && dailyRate >= 0) || (diff < 0 && dailyRate <= 0)) return null;
+    return Math.round(diff / -dailyRate);
   });
 
   const avgBmr = computed(() => {
@@ -121,8 +132,10 @@ export function useEnergyBalance(bodyEntries, sessions, ppm, windowDays = 14) {
     spanDays,
     weightTrendPerWeek,
     fatMassTrendPerWeek,
+    muscleMassTrendPerWeek,
     exerciseCaloriesInWindow,
     avgBmr,
     estimatedDailyIntake,
+    goalEtaDays,
   };
 }
