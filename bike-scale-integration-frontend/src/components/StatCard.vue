@@ -78,12 +78,12 @@ const trendColor = computed(() => {
 .stat-card__text { min-width: 0; }
 
 .stat-card__value {
-  font-size: 2.6rem;
+  font-size: 2.2rem;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.15;
   color: #f5f7fa;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  overflow-wrap: break-word;
 }
 
 .stat-card__label {

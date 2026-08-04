@@ -16,6 +16,7 @@ const props = defineProps({
   title:     { type: String, default: '' },
   accent:    { type: String, default: '#22d3ee' },
   compact:   { type: Boolean, default: false },
+  fillHeight: { type: Boolean, default: false },
   labels:    { type: Array,  default: () => [] },
   datasets:  { type: Array,  default: () => [] }   // ← [{label,data}]
 });
@@ -40,9 +41,9 @@ const options = {
 </script>
 
 <template>
-  <v-card class="chart-card">
+  <v-card class="chart-card" :class="{ 'chart-card--fill': fillHeight }">
     <div v-if="title" class="chart-card__title">{{ title }}</div>
-    <div class="chart-canvas-wrap" :class="{ 'chart-canvas-wrap--compact': compact }">
+    <div class="chart-canvas-wrap" :class="{ 'chart-canvas-wrap--compact': compact, 'chart-canvas-wrap--fill': fillHeight }">
       <Bar :chart-id="chartId"
            :data="{ labels: labels, datasets: ds }"
            :options="options" />
@@ -66,9 +67,19 @@ const options = {
 }
 .chart-canvas-wrap {
   position: relative;
-  height: 180px;
+  height: 200px;
 }
 .chart-canvas-wrap--compact {
   height: 120px;
+}
+.chart-card--fill {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.chart-canvas-wrap--fill {
+  flex: 1;
+  height: auto;
+  min-height: 0;
 }
 </style>

@@ -17,6 +17,7 @@ import LineSkeleton from "@/components/LineSkeleton.vue";
 import Duration from "@/components/Duration.vue";
 import SessionCounters from "@/components/SessionCounters.vue";
 import StatCard from "@/components/StatCard.vue";
+import PaceComparisonCard from "@/components/PaceComparisonCard.vue";
 
 const TARGET_SESSION_HOURS = 1;
 const GOAL_WEIGHT_KG = Number(import.meta.env.VITE_GOAL_WEIGHT_KG) || null;
@@ -169,32 +170,17 @@ const goalEtaText = computed(() => {
     <!-- widok treningowy: du\u017ce statystyki na g\u00f3rze + wykres pr\u0119dko\u015bci na dole -->
     <div v-if="isLiveEffective" class="training-view">
       <v-row dense class="training-view__stats">
-        <v-col cols="12" sm="4" class="stat-col">
-          <StatCard
-            icon="mdi-speedometer"
-            :value="`${speedNow.toFixed(1)} km/h`"
-            label="Current Speed"
-            :color="currentSpeedColor"
-          />
-        </v-col>
-        <v-col cols="12" sm="4" class="stat-col">
-          <StatCard
-            icon="mdi-speedometer-medium"
-            :value="avgSpeedSession != null ? `${avgSpeedSession.toFixed(1)} km/h` : '—'"
-            label="Avg Speed"
-            :color="avgSpeedColor"
-          />
-        </v-col>
-        <v-col cols="12" sm="4" class="stat-col">
-          <StatCard
-            icon="mdi-target"
-            :value="hasEconomyData && targetAvgSpeed != null ? `${targetAvgSpeed.toFixed(1)} km/h` : '—'"
-            label="Target Speed"
-            color="#c084fc"
+        <v-col cols="12" class="stat-col">
+          <PaceComparisonCard
+            :current="speedNow"
+            :average="avgSpeedSession"
+            :target="hasEconomyData ? targetAvgSpeed : null"
+            :current-color="currentSpeedColor"
+            :average-color="avgSpeedColor"
           />
         </v-col>
 
-        <Duration :dense="false" cols="3" :show-label="false" />
+        <Duration :dense="false" cols="3" :show-label="false" :show-session="false" />
         <v-col cols="6" sm="3" class="stat-col">
           <StatCard icon="mdi-counter" :value="`${distNow.toFixed(2)} km`" label="Distance" color="#34d399" />
         </v-col>
@@ -234,7 +220,7 @@ const goalEtaText = computed(() => {
     </div>
 
     <!-- widok spoczynkowy: kafelki (wszystkie najnowsze staty) + wykresy -->
-    <v-row v-else dense align="start">
+    <v-row v-else dense>
       <v-col cols="12" md="6" class="stats-col">
         <v-row dense class="stats-row" :key="`stats-${currentSession?.id}`">
           <Duration />
@@ -356,7 +342,6 @@ const goalEtaText = computed(() => {
             title="Weight trend"
             accent="#fbbf24"
             time-unit="day"
-            compact
             :datasets="[{ label: 'kg', data: weightSeries }]"
           />
 
@@ -365,7 +350,6 @@ const goalEtaText = computed(() => {
               chart-id="km-day"
               title="km / day"
               accent="#34d399"
-              compact
               :labels="daily.map((d) => d.day)"
               :datasets="[{ label: 'km', data: daily.map((d) => d.km) }]"
             />
@@ -373,7 +357,6 @@ const goalEtaText = computed(() => {
               chart-id="dur-day"
               title="Minutes / day"
               accent="#60a5fa"
-              compact
               :labels="daily.map((d) => d.day)"
               :datasets="[{ label: 'min', data: daily.map((d) => d.dur) }]"
             />
@@ -381,7 +364,6 @@ const goalEtaText = computed(() => {
               chart-id="avg-day"
               title="Avg km/h / day"
               accent="#a78bfa"
-              compact
               :labels="daily.map((d) => d.day)"
               :datasets="[{ label: 'km/h', data: daily.map((d) => d.avg) }]"
             />
@@ -393,6 +375,12 @@ const goalEtaText = computed(() => {
 </template>
 
 <style scoped>
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .stats-row {
   width: 100%;
 }
@@ -426,11 +414,13 @@ const goalEtaText = computed(() => {
 .training-view {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 16px;
+  min-height: 0;
 }
 .training-view__chart {
   flex: 1;
-  min-height: 46vh;
+  min-height: 280px;
   display: flex;
 }
 .training-view__chart :deep(.chart-card) {

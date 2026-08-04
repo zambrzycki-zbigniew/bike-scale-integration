@@ -70,7 +70,7 @@ const options = computed(() => ({
 }
 .chart-canvas-wrap {
   position: relative;
-  height: 240px;
+  height: 260px;
 }
 .chart-card--fill {
   height: 100%;
