@@ -18,30 +18,22 @@ Everything else (Firestore, the Cloud Run identity) still uses no keys at all.
 
 ## One-time setup
 
-### 1. Register an app on the Withings developer dashboard
+Withings requires registered URLs (OAuth `redirect_uri`) to already be
+publicly reachable via a plain HTTP HEAD request *before* it will accept them
+— so the service must be deployed first, and the app registered second.
 
-Go to https://developer.withings.com/dashboard/ (sign in with your normal
-Withings account — the same one your Body+ scale is linked to), create an app:
-
-- **Name**: anything, e.g. "bike-dashboard"
-- **Callback URL**: you'll fill this in *after* deploying (step 3), it must be
-  `https://<your-cloud-run-url>/oauth/callback`
-
-Save the **Client ID** and **Client Secret** it gives you — you'll need them below.
-
-### 2. Create the secret + deploy
+### 1. Deploy the service (public) to get its URL
 
 ```bash
 gcloud config configurations activate bike-scale-integration
 
-# placeholder value; the real refresh token gets written by step 4
+# placeholder value; the real refresh token gets written in step 3
 echo -n "placeholder" | gcloud secrets create withings-refresh-token --data-file=-
 
 gcloud run deploy get-body-metrics \
   --source ./get-body-metrics \
   --region europe-west3 \
-  --no-allow-unauthenticated \
-  --set-env-vars WITHINGS_CLIENT_ID=<your_client_id>,WITHINGS_CLIENT_SECRET=<your_client_secret>
+  --allow-unauthenticated
 
 # grant the service's own identity access to read/write the secret
 gcloud secrets add-iam-policy-binding withings-refresh-token \
@@ -49,54 +41,66 @@ gcloud secrets add-iam-policy-binding withings-refresh-token \
   --role="roles/secretmanager.secretVersionManager"
 ```
 
-Note the deployed URL (e.g. `https://get-body-metrics-xxxxx.europe-west3.run.app`).
-Set `WITHINGS_REDIRECT_URI` to `<that URL>/oauth/callback` and re-deploy:
+Cloud Run URLs for this project follow the pattern
+`https://<service>-<project-number>.<region>.run.app` — for this project
+(`bike-scale-integration`, project number `504294436171`) that's:
+
+```
+https://get-body-metrics-504294436171.europe-west3.run.app
+```
+
+The service is `--allow-unauthenticated` (public) because Withings must be
+able to reach `/oauth/callback` directly, with no Google auth. The scheduled
+sync route is instead gated by a shared secret (see step 4) rather than IAM.
+
+### 2. Register the app on the Withings developer dashboard
+
+Go to https://developer.withings.com/dashboard/ (sign in with your normal
+Withings account — the same one your Body+ scale is linked to), create an app,
+and under **Registered URLs** enter:
+
+```
+https://get-body-metrics-504294436171.europe-west3.run.app/oauth/callback
+```
+
+Withings will HEAD-check that URL before accepting it — it should succeed
+immediately since the service is already deployed and public.
+
+Save the **Client ID** and **Client Secret** it gives you.
+
+### 3. Set the real env vars and do the one-time OAuth consent
 
 ```bash
 gcloud run services update get-body-metrics --region europe-west3 \
-  --set-env-vars WITHINGS_REDIRECT_URI=https://<your-cloud-run-url>/oauth/callback
+  --set-env-vars \
+WITHINGS_CLIENT_ID=<your_client_id>,\
+WITHINGS_CLIENT_SECRET=<your_client_secret>,\
+WITHINGS_REDIRECT_URI=https://get-body-metrics-504294436171.europe-west3.run.app/oauth/callback,\
+SYNC_SECRET=<a-long-random-string-you-make-up>
 ```
 
-Also go back to the Withings dashboard and set the app's **Callback URL** to
-that same value.
-
-### 3. Do the one-time OAuth consent
-
-Since `/oauth/callback` requires the request to be signed in as an authorized
-caller (service is `--no-allow-unauthenticated`), the simplest path is to
-temporarily allow public access for this one step:
-
-```bash
-gcloud run services add-iam-policy-binding get-body-metrics --region europe-west3 \
-  --member=allUsers --role=roles/run.invoker
-```
-
-Then visit this URL in your browser (replace `client_id` and `redirect_uri`):
+Then visit this URL in your browser (fill in your real `client_id`):
 
 ```
-https://account.withings.com/oauth2_user/authorize2?response_type=code&client_id=<your_client_id>&scope=user.metrics&redirect_uri=<your_redirect_uri>&state=setup
+https://account.withings.com/oauth2_user/authorize2?response_type=code&client_id=<your_client_id>&scope=user.metrics&redirect_uri=https://get-body-metrics-504294436171.europe-west3.run.app/oauth/callback&state=setup
 ```
 
 Log in, approve access. You'll land on a page saying "Withings account
 connected successfully" — that means the refresh token is now in Secret Manager.
 
-**Then revoke public access again**:
-
-```bash
-gcloud run services remove-iam-policy-binding get-body-metrics --region europe-west3 \
-  --member=allUsers --role=roles/run.invoker
-```
-
 ### 4. Set up the hourly sync via Cloud Scheduler
+
+Include the `SYNC_SECRET` from step 3 as a query param so random internet
+traffic can't trigger syncs (the service itself is public):
 
 ```bash
 gcloud scheduler jobs create http sync-body-metrics \
   --location europe-west3 \
   --schedule "0 * * * *" \
-  --uri "https://<your-cloud-run-url>/" \
-  --http-method POST \
-  --oidc-service-account-email "$(gcloud run services describe get-body-metrics --region europe-west3 --format='value(spec.template.spec.serviceAccountName)')"
+  --uri "https://get-body-metrics-504294436171.europe-west3.run.app/?key=<same-sync-secret>" \
+  --http-method POST
 ```
+
 
 ## Local testing
 

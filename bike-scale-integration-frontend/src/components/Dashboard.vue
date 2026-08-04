@@ -77,15 +77,18 @@ const daily = computed(() => {
 
     <!-- kafelki + wykres prędkości / tabela -->
     <v-row dense>
-      <v-col cols="12" md="6">
-        <v-row dense :key="`stats-${currentSession?.id}`">
-          <Duration :invertIsLive="invertIsLive" />
-          <SessionCounters :invertIsLive="invertIsLive" />
+      <v-col cols="12" md="6" class="stats-col">
+        <v-row dense class="stats-row" :key="`stats-${currentSession?.id}`">
+          <Duration />
+          <SessionCounters />
         </v-row>
       </v-col>
 
       <v-col cols="12" md="6" class="speed-col">
         <div class="speed-col__inner" :class="{ 'speed-col__inner--live': isLiveEffective }">
+          <transition name="fade">
+            <SessionPicker v-if="!isLiveEffective" />
+          </transition>
           <transition name="fade-fast" mode="out-in">
             <LineChart
               v-if="speedLine.length"
@@ -97,9 +100,6 @@ const daily = computed(() => {
               :datasets="[{ label: 'km/h', data: speedLine }]" />
             <LineSkeleton v-else
           /></transition>
-          <transition name="fade">
-            <SessionPicker v-if="!isLiveEffective" />
-          </transition>
         </div>
       </v-col>
     </v-row>
@@ -159,6 +159,19 @@ const daily = computed(() => {
 </template>
 
 <style scoped>
+.stats-col {
+  display: flex;
+}
+.stats-row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+.stats-row :deep(.stat-col) {
+  flex: 1;
+}
+
 .speed-col {
   display: flex;
 }

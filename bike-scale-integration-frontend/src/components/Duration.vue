@@ -5,13 +5,7 @@ import { intervalToDuration, format } from 'date-fns';
 import { useSession } from '@/stores/useSession';
 import StatCard from '@/components/StatCard.vue';
 
-const { timeline, isLive } = storeToRefs(useSession());
-
-/*  kompaktowe kafelki, gdy nie jedziesz  */
-const props = defineProps({
-  invertIsLive:  { type: Boolean, default: false }
-});
-const compact = computed(() => !(!props.invertIsLive ? isLive.value : !isLive.value));
+const { timeline } = storeToRefs(useSession());
 
 /*  start / end epoki  */
 const start = computed(() => timeline.value[0]?.t ?? null);
@@ -42,10 +36,10 @@ const timespan = computed(() =>
 </script>
 
 <template>
-  <v-col cols="12">
-    <StatCard icon="mdi-timer-outline" :value="durationText" label="Duration" color="#22d3ee" :compact="compact" />
+  <v-col cols="12" class="stat-col">
+    <StatCard icon="mdi-timer-outline" :value="durationText" label="Duration" color="#22d3ee" />
   </v-col>
-  <v-col cols="12">
-    <StatCard icon="mdi-clock-outline" :value="timespan" label="Session" color="#60a5fa" :compact="compact" />
+  <v-col cols="12" class="stat-col">
+    <StatCard icon="mdi-clock-outline" :value="timespan" label="Session" color="#60a5fa" />
   </v-col>
 </template>

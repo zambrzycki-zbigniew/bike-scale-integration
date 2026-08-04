@@ -7,6 +7,7 @@ const CLIENT_ID           = process.env.WITHINGS_CLIENT_ID;
 const CLIENT_SECRET       = process.env.WITHINGS_CLIENT_SECRET;
 const REDIRECT_URI        = process.env.WITHINGS_REDIRECT_URI; // e.g. https://get-body-metrics-xxx.run.app/oauth/callback
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET_NAME || 'withings-refresh-token';
+const SYNC_SECRET         = process.env.SYNC_SECRET; // optional shared secret gating the public sync trigger
 
 const db = new Firestore();
 const secretClient = new SecretManagerServiceClient();
@@ -75,6 +76,12 @@ async function fetchNewMeasurements(accessToken, sinceTs) {
 
 /* ---------- scheduled sync: called periodically by Cloud Scheduler ---------- */
 async function handleSync(req, res) {
+  // the service must be public for Withings to reach /oauth/callback, so gate
+  // this endpoint with a shared secret instead of relying on Cloud Run IAM.
+  if (SYNC_SECRET && req.query.key !== SYNC_SECRET) {
+    return res.status(403).send('Forbidden');
+  }
+
   const stateRef = db.doc('body-metrics-sync/state');
   const stateSnap = await stateRef.get();
   const sinceTs = stateSnap.exists ? stateSnap.data().lastSync : 0;
@@ -120,6 +127,8 @@ async function handleOAuthCallback(req, res) {
 
 functions.http('main', async (req, res) => {
   try {
+    // Withings verifies registered URLs with a plain HTTP HEAD before accepting them.
+    if (req.method === 'HEAD') return res.status(200).end();
     if (req.path === '/oauth/callback') return await handleOAuthCallback(req, res);
     return await handleSync(req, res);
   } catch (err) {
