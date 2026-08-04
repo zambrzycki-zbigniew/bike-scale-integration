@@ -17,7 +17,7 @@ const invertIsLive = ref(false);
 
 /* ---------- reactive data ---------- */
 const { ppm } = usePulsesPerKm();
-const { sessions, timeline, currentSession, isLive, selectedId } = useSession();
+const { sessions, timeline, currentSession, isLive } = useSession();
 
 /* ---------- wykresy ---------- */
 const distLine = computed(() => {

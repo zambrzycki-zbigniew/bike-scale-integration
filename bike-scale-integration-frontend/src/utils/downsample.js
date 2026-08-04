@@ -1,5 +1,3 @@
-import { fromUnixTime } from "date-fns";
-
 /**
  *  hybridSeries v3–tunable
  *  • ostatni tailSec sekund    → odstęp = minStep
@@ -42,7 +40,7 @@ export function hybridSeries(
     const tsMs = p.t * 1000;
     queue.push(p);
     sum += p.p;
-    if (queue.length > 60) sum -= queue.shift().p;
+    if (queue.length > tailSec) sum -= queue.shift().p;
     kmC += p.p;
     const ageRatio = (total - 1 - i) / (total - 1);
     const step     = Math.round(

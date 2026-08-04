@@ -4,9 +4,10 @@ import {
 } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { useMetrics } from '@/composables/useMetrics';
+import { usePulsesPerKm } from '@/stores/usePulsesPerKm';
 
-const PPM         = 464;
-const MIN_SAMPLES = 10;
+const FALLBACK_PPM = 464;   // used only if Firestore config hasn't loaded yet
+const MIN_SAMPLES  = 10;
 
 /* ── singleton reactive state ── */
 const sessions    = ref([]);      // zamknięte + ewent. current
@@ -21,6 +22,7 @@ export function useSession() {
 
   /* ────────── konfiguracja tylko raz ────────── */
   const db = inject('db');
+  const { ppm } = usePulsesPerKm();
 
   /* 1) zamknięte sesje */
   onSnapshot(
@@ -70,15 +72,16 @@ export function useSession() {
   });
 
   /* 5) liczniki */
+  const effectivePpm = computed(() => ppm.value || FALLBACK_PPM);
   const speedNow = computed(() => {
     if (!timeline.value.length) return 0;
     const wnd = timeline.value.filter(v => v.t >= lastEpoch.value - 60);
     const imp = wnd.reduce((a,b)=>a+b.p,0);
     const sec = wnd.at(-1).t - wnd[0].t || 1;
-    return (imp*3600)/(PPM*sec);
+    return (imp*3600)/(effectivePpm.value*sec);
   });
   const distNow = computed(() =>
-    timeline.value.reduce((a,b)=>a+b.p,0) / PPM
+    timeline.value.reduce((a,b)=>a+b.p,0) / effectivePpm.value
   );
 
   /* 6) aktualnie pokazywana sesja */

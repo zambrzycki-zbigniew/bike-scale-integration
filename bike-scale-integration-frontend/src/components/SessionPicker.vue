@@ -2,8 +2,10 @@
 import { computed } from "vue";
 import { format, intervalToDuration } from "date-fns";
 import { useSession } from "@/stores/useSession";
+import { usePulsesPerKm } from "@/stores/usePulsesPerKm";
 
 const { sessions, selectSession, isLive, currentSession } = useSession();
+const { ppm } = usePulsesPerKm();
 
 /* kolumny tabeli */
 const headers = [
@@ -32,7 +34,7 @@ const rows = computed(() => {
       startTxt: format(s.start * 1000, "dd.MM HH:mm"),
       endTxt: format(s.end * 1000, "dd.MM HH:mm"),
       durTxt: formatHMS(s.durationSec),
-      km: (s.distKm ?? (s.imp ? s.imp / 464 : 0)).toFixed(2),
+      km: (s.distKm ?? (s.imp ? s.imp / (ppm.value || 464) : 0)).toFixed(2),
       avgTxt: (s.avgKmh ?? 0).toFixed(2),
     }));
 });

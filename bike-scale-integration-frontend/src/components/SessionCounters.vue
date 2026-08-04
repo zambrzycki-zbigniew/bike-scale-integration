@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineProps } from "vue";
+import { computed } from "vue";
 import { useSession } from "@/stores/useSession";
 const { speedNow, distNow, isLive } = useSession();
 const props = defineProps({
