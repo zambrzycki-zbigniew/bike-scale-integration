@@ -15,6 +15,7 @@ const props = defineProps({
   chartId:   { type: String, default: 'bar' },
   title:     { type: String, default: '' },
   accent:    { type: String, default: '#22d3ee' },
+  compact:   { type: Boolean, default: false },
   labels:    { type: Array,  default: () => [] },
   datasets:  { type: Array,  default: () => [] }   // ← [{label,data}]
 });
@@ -41,7 +42,7 @@ const options = {
 <template>
   <v-card class="chart-card">
     <div v-if="title" class="chart-card__title">{{ title }}</div>
-    <div class="chart-canvas-wrap">
+    <div class="chart-canvas-wrap" :class="{ 'chart-canvas-wrap--compact': compact }">
       <Bar :chart-id="chartId"
            :data="{ labels: labels, datasets: ds }"
            :options="options" />
@@ -66,5 +67,8 @@ const options = {
 .chart-canvas-wrap {
   position: relative;
   height: 180px;
+}
+.chart-canvas-wrap--compact {
+  height: 120px;
 }
 </style>

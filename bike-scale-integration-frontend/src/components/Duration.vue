@@ -5,6 +5,12 @@ import { intervalToDuration, format } from 'date-fns';
 import { useSession } from '@/stores/useSession';
 import StatCard from '@/components/StatCard.vue';
 
+defineProps({
+  dense: { type: Boolean, default: true },
+  cols: { type: [String, Number], default: 6 },
+  showLabel: { type: Boolean, default: true },
+});
+
 const { timeline } = storeToRefs(useSession());
 
 /*  start / end epoki  */
@@ -36,11 +42,11 @@ const timespan = computed(() =>
 </script>
 
 <template>
-  <div class="section-label">This Ride</div>
-  <v-col cols="6" class="stat-col">
-    <StatCard icon="mdi-timer-outline" :value="durationText" label="Duration" color="#22d3ee" dense />
+  <div v-if="showLabel" class="section-label">This Ride</div>
+  <v-col :cols="cols" class="stat-col">
+    <StatCard icon="mdi-timer-outline" :value="durationText" label="Duration" color="#22d3ee" :dense="dense" />
   </v-col>
-  <v-col cols="6" class="stat-col">
-    <StatCard icon="mdi-clock-outline" :value="timespan" label="Session" color="#60a5fa" dense />
+  <v-col :cols="cols" class="stat-col">
+    <StatCard icon="mdi-clock-outline" :value="timespan" label="Session" color="#60a5fa" :dense="dense" />
   </v-col>
 </template>

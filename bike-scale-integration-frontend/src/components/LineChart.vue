@@ -14,6 +14,7 @@ const props = defineProps({
   title:      { type: String, default: '' },
   accent:     { type: String, default: '#22d3ee' },
   fillHeight: { type: Boolean, default: false },
+  compact:    { type: Boolean, default: false },
   timeUnit:   { type: String, default: 'minute' },
   datasets:   { type: Array,  default: () => [] }
 });
@@ -45,7 +46,7 @@ const options = computed(() => ({
 <template>
   <v-card class="chart-card" :class="{ 'chart-card--fill': fillHeight }">
     <div v-if="title" class="chart-card__title">{{ title }}</div>
-    <div class="chart-canvas-wrap" :class="{ 'chart-canvas-wrap--fill': fillHeight }">
+    <div class="chart-canvas-wrap" :class="{ 'chart-canvas-wrap--fill': fillHeight, 'chart-canvas-wrap--compact': compact }">
       <Line :chart-id="chartId"
             :data="{ datasets: ds }"
             :options="options" />
@@ -80,5 +81,8 @@ const options = computed(() => ({
   flex: 1;
   height: auto;
   min-height: 0;
+}
+.chart-canvas-wrap--compact {
+  height: 150px;
 }
 </style>
