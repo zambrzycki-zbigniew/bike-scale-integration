@@ -19,7 +19,7 @@ const invertIsLive = ref(false);
 
 /* ---------- reactive data ---------- */
 const { ppm } = storeToRefs(usePulsesPerKm());
-const { sessions, timeline, currentSession, isLive } = storeToRefs(useSession());
+const { sessions, timeline, currentSession, isLive, distNow } = storeToRefs(useSession());
 const { latest: latestBodyMetric, weightSeries } = storeToRefs(useBodyMetrics());
 
 /* ---------- wykresy ---------- */
@@ -57,6 +57,41 @@ const daily = computed(() => {
       avg: v.durMin ? v.km / (v.durMin / 60) : 0,
     }));
 });
+
+/* ---------- kalorie z jazdy (MET × masa ciała × czas) ---------- */
+const rideDurationHr = computed(() => {
+  if (timeline.value.length < 2) return 0;
+  return (timeline.value.at(-1).t - timeline.value[0].t) / 3600;
+});
+
+// przybliżone MET dla jazdy na rowerze wg średniej prędkości (compendium of physical activities)
+function metForSpeed(kmh) {
+  if (kmh < 16) return 4.0;
+  if (kmh < 19) return 6.8;
+  if (kmh < 22.4) return 8.0;
+  if (kmh < 25.6) return 10.0;
+  return 12.0;
+}
+
+const estimatedCalories = computed(() => {
+  if (!rideDurationHr.value || !latestBodyMetric.value?.weightKg) return null;
+  const avgSpeed = distNow.value / rideDurationHr.value;
+  return metForSpeed(avgSpeed) * latestBodyMetric.value.weightKg * rideDurationHr.value;
+});
+
+/* ---------- skład ciała (Withings) ---------- */
+const fatMassKg = computed(() => {
+  const m = latestBodyMetric.value;
+  if (!m?.weightKg || m.fatRatioPct == null) return null;
+  return m.weightKg * (m.fatRatioPct / 100);
+});
+
+const restingCalories = computed(() => {
+  const m = latestBodyMetric.value;
+  if (!m?.weightKg || fatMassKg.value == null) return null;
+  const leanMassKg = m.weightKg - fatMassKg.value;
+  return 370 + 21.6 * leanMassKg; // Katch-McArdle BMR
+});
 </script>
 
 <template>
@@ -73,11 +108,20 @@ const daily = computed(() => {
     </header>
 
     <!-- kafelki (wszystkie najnowsze staty) + wykresy -->
-    <v-row dense>
+    <v-row dense align="start">
       <v-col cols="12" md="6" class="stats-col">
         <v-row dense class="stats-row" :key="`stats-${currentSession?.id}`">
           <Duration />
           <SessionCounters />
+          <v-col cols="12" class="stat-col">
+            <StatCard
+              icon="mdi-fire"
+              :value="estimatedCalories ? `${estimatedCalories.toFixed(0)} kcal` : '—'"
+              label="Calories (est.)"
+              color="#f97316"
+              dense
+            />
+          </v-col>
 
           <div class="section-label">Body</div>
           <v-col cols="12" class="stat-col">
@@ -86,6 +130,33 @@ const daily = computed(() => {
               :value="latestBodyMetric ? `${latestBodyMetric.weightKg.toFixed(1)} kg` : '—'"
               label="Weight"
               color="#fbbf24"
+            />
+          </v-col>
+          <v-col cols="6" class="stat-col">
+            <StatCard
+              icon="mdi-water-percent"
+              :value="fatMassKg != null ? `${fatMassKg.toFixed(1)} kg` : '—'"
+              label="Fat Mass"
+              color="#f87171"
+              dense
+            />
+          </v-col>
+          <v-col cols="6" class="stat-col">
+            <StatCard
+              icon="mdi-arm-flex"
+              :value="latestBodyMetric?.muscleMassKg ? `${latestBodyMetric.muscleMassKg.toFixed(1)} kg` : '—'"
+              label="Muscle Mass"
+              color="#38bdf8"
+              dense
+            />
+          </v-col>
+          <v-col cols="12" class="stat-col">
+            <StatCard
+              icon="mdi-fire-circle"
+              :value="restingCalories != null ? `${restingCalories.toFixed(0)} kcal/day` : '—'"
+              label="Resting Burn (BMR)"
+              color="#fb923c"
+              dense
             />
           </v-col>
         </v-row>
@@ -149,16 +220,7 @@ const daily = computed(() => {
 </template>
 
 <style scoped>
-.stats-col {
-  display: flex;
-}
 .stats-row {
-  width: 100%;
-}
-.stats-row :deep(.stat-col) {
-  display: flex;
-}
-.stats-row :deep(.stat-col) > * {
   width: 100%;
 }
 .stats-row :deep(.section-label) {
@@ -168,7 +230,7 @@ const daily = computed(() => {
   text-transform: uppercase;
   letter-spacing: .08em;
   color: rgba(255, 255, 255, 0.4);
-  margin: 10px 4px 0;
+  margin: 14px 4px 2px;
 }
 .stats-row :deep(.section-label:first-child) {
   margin-top: 0;
