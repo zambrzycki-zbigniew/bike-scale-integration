@@ -7,6 +7,7 @@ import { usePulsesPerKm } from "@/stores/usePulsesPerKm";
 import { useSession } from "@/stores/useSession";
 import { useBodyMetrics } from "@/stores/useBodyMetrics";
 import { hybridSeries } from "@/utils/downsample";
+import { useEnergyBalance } from "@/composables/useEnergyBalance";
 
 import LineChart from "@/components/LineChart.vue";
 import BarChart from "@/components/BarChart.vue";
@@ -20,7 +21,22 @@ const invertIsLive = ref(false);
 /* ---------- reactive data ---------- */
 const { ppm } = storeToRefs(usePulsesPerKm());
 const { sessions, timeline, currentSession, isLive, distNow } = storeToRefs(useSession());
-const { latest: latestBodyMetric, weightSeries } = storeToRefs(useBodyMetrics());
+const { latest: latestBodyMetric, weightSeries, entries: bodyEntries } = storeToRefs(useBodyMetrics());
+
+const {
+  hasEnoughData: hasTrendData,
+  weightTrendPerWeek,
+  fatMassTrendPerWeek,
+  estimatedDailyIntake,
+} = useEnergyBalance(bodyEntries, sessions, ppm, 14);
+
+function trendIcon(v) {
+  if (v == null) return "mdi-trending-neutral";
+  return v < 0 ? "mdi-trending-down" : "mdi-trending-up";
+}
+function trendValue(v, unit) {
+  return v == null ? "—" : `${v > 0 ? "+" : ""}${v.toFixed(2)} ${unit}`;
+}
 
 /* ---------- wykresy ---------- */
 const speedLine = computed(() => {
@@ -157,6 +173,34 @@ const restingCalories = computed(() => {
               label="Resting Burn (BMR)"
               color="#fb923c"
               dense
+            />
+          </v-col>
+
+          <div class="section-label">Trends (14d)</div>
+          <v-col cols="6" class="stat-col">
+            <StatCard
+              :icon="trendIcon(weightTrendPerWeek)"
+              :value="hasTrendData ? trendValue(weightTrendPerWeek, 'kg/wk') : '—'"
+              label="Weight Trend"
+              color="#60a5fa"
+              dense
+            />
+          </v-col>
+          <v-col cols="6" class="stat-col">
+            <StatCard
+              :icon="trendIcon(fatMassTrendPerWeek)"
+              :value="hasTrendData ? trendValue(fatMassTrendPerWeek, 'kg/wk') : '—'"
+              label="Fat Trend"
+              color="#f87171"
+              dense
+            />
+          </v-col>
+          <v-col cols="12" class="stat-col">
+            <StatCard
+              icon="mdi-food-apple"
+              :value="hasTrendData && estimatedDailyIntake != null ? `${Math.round(estimatedDailyIntake)} kcal/day` : '—'"
+              label="Est. Daily Intake"
+              color="#22c55e"
             />
           </v-col>
         </v-row>
