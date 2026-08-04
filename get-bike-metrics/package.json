@@ -1,0 +1,14 @@
+{
+  "name": "bike-telemetry",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^4.0.0",
+    "@google-cloud/firestore": "^7.11.1",
+    "@google-cloud/tasks": "^6.1.0"
+  },
+  "scripts": {
+    "start": "functions-framework --target=telemetry"
+  }
+}
