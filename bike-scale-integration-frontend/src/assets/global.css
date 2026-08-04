@@ -1,0 +1,14 @@
+/* src/assets/global.css */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all .3s ease;
+}
+.fade-enter-from  { opacity: 0; transform: translateY(-10px); }
+.fade-leave-to    { opacity: 0; transform: translateY(10px); }
+
+.fade-fast-enter-active,
+.fade-fast-leave-active {
+  transition: all .2s ease;
+}
+.fade-fast-enter-from  { opacity: 0; }
+.fade-fast-leave-to    { opacity: 0; }
