@@ -431,8 +431,10 @@ const goalEtaText = computed(() => {
   flex: 1;
   min-height: 280px;
   display: flex;
+  flex-direction: column;
 }
 .training-view__chart :deep(.chart-card) {
   flex: 1;
+  min-height: 0;
 }
 </style>
