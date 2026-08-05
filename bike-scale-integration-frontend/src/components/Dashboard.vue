@@ -180,11 +180,11 @@ const goalEtaText = computed(() => {
           />
         </v-col>
 
-        <Duration :dense="false" cols="3" :show-label="false" :show-session="false" />
-        <v-col cols="6" sm="3" class="stat-col">
+        <Duration :dense="false" cols="4" :show-label="false" :show-session="false" />
+        <v-col cols="4" class="stat-col">
           <StatCard icon="mdi-counter" :value="`${distNow.toFixed(2)} km`" label="Distance" color="#34d399" />
         </v-col>
-        <v-col cols="6" sm="3" class="stat-col">
+        <v-col cols="4" class="stat-col">
           <StatCard
             icon="mdi-fire"
             :value="estimatedCalories ? `${estimatedCalories.toFixed(0)} kcal` : '—'"
@@ -342,6 +342,7 @@ const goalEtaText = computed(() => {
             title="Weight trend"
             accent="#fbbf24"
             time-unit="day"
+            fill-height
             :datasets="[{ label: 'kg', data: weightSeries }]"
           />
 
@@ -350,6 +351,7 @@ const goalEtaText = computed(() => {
               chart-id="km-day"
               title="km / day"
               accent="#34d399"
+              fill-height
               :labels="daily.map((d) => d.day)"
               :datasets="[{ label: 'km', data: daily.map((d) => d.km) }]"
             />
@@ -357,6 +359,7 @@ const goalEtaText = computed(() => {
               chart-id="dur-day"
               title="Minutes / day"
               accent="#60a5fa"
+              fill-height
               :labels="daily.map((d) => d.day)"
               :datasets="[{ label: 'min', data: daily.map((d) => d.dur) }]"
             />
@@ -364,6 +367,7 @@ const goalEtaText = computed(() => {
               chart-id="avg-day"
               title="Avg km/h / day"
               accent="#a78bfa"
+              fill-height
               :labels="daily.map((d) => d.day)"
               :datasets="[{ label: 'km/h', data: daily.map((d) => d.avg) }]"
             />
@@ -409,6 +413,7 @@ const goalEtaText = computed(() => {
 .charts-col__inner--idle {
   /* compensates for the "This Ride" section-label sitting above the first card on the left */
   margin-top: 19px;
+  height: calc(100% - 19px);
 }
 
 .training-view {

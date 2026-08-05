@@ -55,8 +55,10 @@ function fmt(v) {
 .pace-card__row {
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  gap: 12px;
+  justify-content: center;
+  gap: 32px;
+  max-width: 420px;
+  margin: 0 auto;
 }
 .pace-card__item {
   text-align: center;

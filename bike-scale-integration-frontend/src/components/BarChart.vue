@@ -82,4 +82,13 @@ const options = {
   height: auto;
   min-height: 0;
 }
+@media (max-width: 959.98px) {
+  .chart-card--fill {
+    height: auto;
+  }
+  .chart-canvas-wrap--fill {
+    flex: none;
+    height: 200px;
+  }
+}
 </style>

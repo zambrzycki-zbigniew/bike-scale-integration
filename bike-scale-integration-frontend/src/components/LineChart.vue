@@ -85,4 +85,13 @@ const options = computed(() => ({
 .chart-canvas-wrap--compact {
   height: 150px;
 }
+@media (max-width: 959.98px) {
+  .chart-card--fill {
+    height: auto;
+  }
+  .chart-canvas-wrap--fill {
+    flex: none;
+    height: 260px;
+  }
+}
 </style>
