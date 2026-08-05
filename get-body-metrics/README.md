@@ -106,16 +106,19 @@ https://account.withings.com/oauth2_user/authorize2?response_type=code&client_id
 Log in, approve access. You'll land on a page saying "Withings account
 connected successfully" — that means the refresh token is now in Secret Manager.
 
-### 4. Set up the daily sync via Cloud Scheduler
+### 4. Set up the hourly sync via Cloud Scheduler
 
 Include the `SYNC_SECRET` from step 3 as a query param so random internet
-traffic can't trigger syncs (the service itself is public). Once a day is
-plenty for a scale you step on at most a couple of times daily:
+traffic can't trigger syncs (the service itself is public). Every invocation
+also prunes old `withings-refresh-token` secret versions down to just the
+latest, so hourly (or even more frequent) syncing stays effectively free —
+Cloud Run/Firestore usage stays well within the free tier, and Secret Manager
+never accumulates versions:
 
 ```bash
 gcloud scheduler jobs create http sync-body-metrics \
   --location europe-west3 \
-  --schedule "0 6 * * *" \
+  --schedule "0 * * * *" \
   --uri "https://get-body-metrics-504294436171.europe-west3.run.app/?key=<same-sync-secret>" \
   --http-method POST
 ```

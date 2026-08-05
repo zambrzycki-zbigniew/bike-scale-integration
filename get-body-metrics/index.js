@@ -29,10 +29,24 @@ async function getLatestSecret(name) {
 }
 
 async function addSecretVersion(name, value) {
-  await secretClient.addSecretVersion({
-    parent: `projects/${PROJECT_ID}/secrets/${name}`,
+  const parent = `projects/${PROJECT_ID}/secrets/${name}`;
+  const [newVersion] = await secretClient.addSecretVersion({
+    parent,
     payload: { data: Buffer.from(value, 'utf8') },
   });
+
+  // Withings rotates the refresh token on every use, so old versions are dead
+  // weight - prune them immediately to avoid unbounded Secret Manager costs.
+  const [versions] = await secretClient.listSecretVersions({ parent });
+  await Promise.all(
+    versions
+      .filter((v) => v.name !== newVersion.name && v.state !== 'DESTROYED')
+      .map((v) =>
+        secretClient
+          .destroySecretVersion({ name: v.name })
+          .catch((err) => console.error(`Failed to prune secret version ${v.name}:`, err.message))
+      )
+  );
 }
 
 async function withingsRequest(url, params) {
