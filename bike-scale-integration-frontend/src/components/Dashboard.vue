@@ -411,9 +411,9 @@ const goalEtaText = computed(() => {
   width: 100%;
 }
 .charts-col__inner--idle {
-  /* compensates for the "This Ride" section-label sitting above the first card on the left */
+  /* compensates for the "This Ride" section-label sitting above the first card on the left, and trims a touch off the total so charts don't look oversized */
   margin-top: 19px;
-  height: calc(100% - 19px);
+  height: calc(100% - 38px);
 }
 
 .training-view {
@@ -422,6 +422,10 @@ const goalEtaText = computed(() => {
   flex: 1;
   gap: 16px;
   min-height: 0;
+}
+.training-view__stats {
+  /* v-row defaults to flex-grow:1; without this it fights the chart for leftover space */
+  flex: 0 0 auto !important;
 }
 .training-view__chart {
   flex: 1;
