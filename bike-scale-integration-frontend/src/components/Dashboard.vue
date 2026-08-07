@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onBeforeUnmount } from "vue";
 import { storeToRefs } from "pinia";
 import { format } from "date-fns";
 
@@ -10,6 +10,7 @@ import { hybridSeries } from "@/utils/downsample";
 import { metForSpeed, nextTier } from "@/utils/met";
 import { useEnergyBalance } from "@/composables/useEnergyBalance";
 import { useTrainingEconomy } from "@/composables/useTrainingEconomy";
+import { useAudioVisualizer } from "@/composables/useAudioVisualizer";
 
 import LineChart from "@/components/LineChart.vue";
 import BarChart from "@/components/BarChart.vue";
@@ -23,6 +24,21 @@ const TARGET_SESSION_HOURS = 1;
 const GOAL_WEIGHT_KG = Number(import.meta.env.VITE_GOAL_WEIGHT_KG) || null;
 
 const invertIsLive = ref(false);
+
+const {
+  isSupported: isVisualizerSupported,
+  isActive: isVisualizerActive,
+  error: visualizerError,
+  start: startVisualizer,
+  stop: stopVisualizer,
+} = useAudioVisualizer();
+
+function toggleVisualizer() {
+  if (isVisualizerActive.value) stopVisualizer();
+  else startVisualizer();
+}
+
+onBeforeUnmount(() => stopVisualizer());
 
 /* ---------- reactive data ---------- */
 const { ppm } = storeToRefs(usePulsesPerKm());
@@ -162,6 +178,16 @@ const goalEtaText = computed(() => {
         <v-chip v-if="isLive" color="green" size="small" class="live-chip" variant="flat">
           <v-icon start size="10">mdi-circle</v-icon> LIVE
         </v-chip>
+        <v-btn
+          v-if="isVisualizerSupported"
+          :icon="isVisualizerActive ? 'mdi-music-note' : 'mdi-music-note-off'"
+          size="small"
+          variant="text"
+          density="comfortable"
+          :color="isVisualizerActive ? 'primary' : undefined"
+          @click="toggleVisualizer"
+          :title="visualizerError ? `Visualizer error: ${visualizerError}` : 'Toggle music visualizer'"
+        />
         <v-btn icon="mdi-swap-horizontal" size="small" variant="text" density="comfortable"
                @click="invertIsLive = !invertIsLive" title="Toggle preview mode" />
       </div>

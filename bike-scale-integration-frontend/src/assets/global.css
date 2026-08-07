@@ -61,3 +61,44 @@ html, body, #app {
 }
 .fade-fast-enter-from  { opacity: 0; }
 .fade-fast-leave-to    { opacity: 0; }
+
+/* ---------- music visualizer (see useAudioVisualizer.js) ---------- */
+:root {
+  --beat-loudness: 0;
+  --beat-bass: 0;
+  --beat-mid: 0;
+  --beat-treble: 0;
+}
+
+.dashboard {
+  position: relative;
+}
+.dashboard::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 15%,
+    color-mix(in srgb, #a78bfa calc(8% + var(--beat-bass) * 45%), transparent),
+    transparent 60%
+  );
+  transition: background 70ms linear;
+}
+
+.stat-card,
+.pace-card {
+  transition: box-shadow 70ms linear, transform 70ms linear;
+  box-shadow:
+    0 0 calc(8px + var(--beat-loudness) * 34px) 0
+    color-mix(in srgb, var(--accent, #a78bfa) calc(15% + var(--beat-loudness) * 55%), transparent);
+  transform: scale(calc(1 + var(--beat-bass) * 0.015));
+}
+
+.chart-card {
+  transition: box-shadow 70ms linear;
+  box-shadow:
+    0 0 calc(6px + var(--beat-treble) * 26px) 0
+    color-mix(in srgb, #a78bfa calc(10% + var(--beat-treble) * 40%), transparent);
+}

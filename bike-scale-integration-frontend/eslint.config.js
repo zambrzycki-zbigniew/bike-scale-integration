@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
+import globals from 'globals';
 
 export default [
   js.configs.recommended,
@@ -8,11 +9,19 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
-      globals: { window: 'readonly', document: 'readonly', console: 'readonly' },
+      globals: globals.browser,
     },
     rules: {
       // small personal dashboard, single-word component names are fine
       'vue/multi-word-component-names': 'off',
+    },
+  },
+  {
+    files: ['electron/**/*.cjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'commonjs',
+      globals: globals.node,
     },
   },
   {
