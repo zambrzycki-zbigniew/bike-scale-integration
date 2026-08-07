@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 import {
   collection, query, orderBy, where, onSnapshot, doc
 } from 'firebase/firestore';
-import { format } from 'date-fns';
 import { db } from '@/firebase';
 import { useMetrics } from '@/composables/useMetrics';
 import { usePulsesPerKm } from '@/stores/usePulsesPerKm';
@@ -59,10 +58,6 @@ export const useSession = defineStore('session', () => {
     const { ts, p } = data;
     if (lastEpoch.value !== null && ts <= lastEpoch.value) return;
 
-    const dayKey = format(ts * 1000, 'yyyy-MM-dd');
-    if (timeline.value[0] && format(timeline.value[0].t * 1000, 'yyyy-MM-dd') !== dayKey) {
-      timeline.value = [];
-    }
     timeline.value.push({ t: ts, p });
     lastEpoch.value = ts;
   });
